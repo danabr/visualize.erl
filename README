@@ -1,0 +1,59 @@
+Some tools for visualizing Erlang.
+
+Note, if your are looking for real static analysis tools, have a look at
+RefactorErl.
+
+The first tool is a dependency calculator. It calculates dependencies
+between erlang modules (either within an app, or between apps).
+
+The second tool consists of a parse transform and an analysis process,
+that can be used to visualize how processes communicate with each other.
+
+Both tools generate data that can fed to graphviz to product digraphs.
+
+The dependency visualizer
+-------------------------
+Usage:
+    1> Deps = gather:dependencies("/path/to/app"),
+    2> Dot = visualize:digraph(Deps),
+    3> file:write_file("test.dot", Dot).
+
+Note that the application must have been compiled with the debug_info flag,
+or otherwise no dependencies can be extracted. The OTP library on some
+systems happens to compiled in such a way, so you can visualize OTP!
+
+Limitations:
+The tool only looks for direct calls to modules, e.g. lists:reverse([1,2]).
+Any call where the module is not an atom can not be properly recorded. Such
+calls are listed with the module 'UNKNOWN'. Also, the tool does not consider
+uses of apply.
+
+To summarize, these calls will not be noted by the tool:
+    apply(lists, reverse, [[1,2,3]])
+    M = lists, M:reverse([1,2,3])
+
+The process analysis tool
+-------------------------
+The process analysis tool records interactions between processes. In fact,
+it records:
+*  ! (The bang operator)
+*  spawn
+*  spawn_link
+*  register
+*  gen_server:call (To be done!)
+*  gen_server:cast (To be done!)
+*  gen_server:reply (To be done!)
+*  gen_server:start (To be done!)
+*  gen_server:start_link (To be done!)
+
+(One could wonder why I went through all this trouble, given there is trace
+ functionality built right into OTP, but what other excuse could I find to
+ create a parse transform?)
+
+To use it, you have to include "include/analyze.hrl" in all files that take
+part in the interactions you would like to analyze. Then you do like this:
+    1> process_analyzer:start().
+    2> my_code:run().
+    3> Flow = process_analyser:flow(),
+    4> Dot = visualize:digraph(Deps),
+    5> file:write_file("test.dot", Dot).
