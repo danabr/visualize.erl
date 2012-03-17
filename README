@@ -14,7 +14,7 @@ Both tools generate data that can fed to graphviz to product digraphs.
 The dependency visualizer
 -------------------------
 Usage:
-    1> Deps = gather:dependencies("/path/to/app"),
+    1> Deps = gather:dependencies("/path/to/app", internal),
     2> Dot = visualize:digraph(Deps),
     3> file:write_file("test.dot", Dot).
 
